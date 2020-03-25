@@ -9,62 +9,106 @@ from datetime import datetime, timedelta
 import numpy
 import plotly.graph_objects as go
 
+POPULATION = 330000000
+LAST_DAY = datetime(2020, 5, 2)
 
-def main():
-    """ Read and fit raw data, then generate plot """
 
+def read_data():
+    """ Read CSV data """
     with open("data.csv", "r") as fid:
         csv_reader = csv.reader(fid)
         dates = []
-        num_cases = []
+        cases = []
         header = True
-        for date_str, cases in csv_reader:
+        for date_str, num_cases in csv_reader:
             if header:
                 header = False
                 continue
             dates.append(datetime.strptime(date_str + "-2020", "%d-%b-%Y"))
-            num_cases.append(int(cases))
-    x = numpy.array(range(len(num_cases)))
-    y = numpy.array(num_cases)
-    last_day = datetime(2020, 4, 30)
+            cases.append(int(num_cases))
+    return dates, cases
+
+
+def fit_and_project(x, y, first_day):
+    """
+    Fit data for the past number of days
+    Project fit until LAST_DAY
+    """
+    pfit = numpy.polyfit(x, numpy.log10(y), 1)
+
+    # project into the future
+    projected_dates = numpy.arange(first_day, LAST_DAY, timedelta(days=1))
+    projected_x = numpy.arange(x[0], x[0] + len(projected_dates))
+    projected_y = 10 ** (pfit[0] * projected_x + pfit[1])
+    projected_y = numpy.minimum(projected_y, POPULATION)
+
+    return projected_dates, projected_y, projected_y / POPULATION * 100
+
+
+def main():
+    """ Read and fit raw data, then generate plot """
+    dates0, cases = read_data()
+
+    x0 = numpy.array(range(len(cases)))
+    y0 = numpy.array(cases)
+    y0norm = numpy.array(cases) / POPULATION * 100
+
     fig = go.Figure()
+    fig.add_trace(go.Scatter(x=dates0, y=y0, mode="markers", name="All data"))
 
-    fig.add_trace(go.Scatter(x=dates, y=y, mode="markers", name="All data"))
+    # Data since March 1
+    days = (datetime.today() - datetime(2020, 3, 1)).days
+    dates1, y1, y1norm = fit_and_project(x0[-days:], y0[-days:], dates0[-days])
+    fig.add_trace(go.Scatter(x=dates1, y=y1, mode="lines", name=f"Last {days} days",))
+    # Last 7 days
+    days = 7
+    dates2, y2, y2norm = fit_and_project(x0[-days:], y0[-days:], dates0[-days])
+    fig.add_trace(go.Scatter(x=dates2, y=y2, mode="lines", name=f"Last {days} days",))
+    subtitle = f"<br><sub><a href='https://www.worldometers.info/coronavirus/country/us/'>"
+    subtitle += "Source</a>"
+    subtitle += f"<br>Updated through {dates0[-1].strftime('%b-%d')}</sub>"
+    title = "<b>Projected coronavirus cases in the USA</b>" + subtitle
 
-    population = 330000000
-    for num_points in [21, 7]:
-        x_arr = x[-num_points:]
-        y_arr = y[-num_points:]
-        p = numpy.polyfit(x_arr, numpy.log10(y_arr), 1)
-
-        # project into the future
-        projected_x = numpy.array(list(range(int(min(x_arr)), 60)))
-        projected_y = 10 ** (p[0] * projected_x + p[1])
-        projected_y = numpy.minimum(projected_y, population)
-
-        first_day = dates[-num_points]
-        projected_dates = numpy.arange(first_day, last_day, timedelta(days=1))
-        fig.add_trace(
-            go.Scatter(
-                x=projected_dates,
-                y=projected_y[: len(projected_dates)],
-                mode="lines",
-                name=f"Last {num_points} days",
-            )
-        )
-    title = f"Total coronavirus cases in the USA"
     fig.update_layout(title=title, yaxis_type="log")
-    fig.add_annotation(
-        x=dates[-1],
-        y=2,
-        text=f"Last updated {dates[-1].strftime('%b-%d')}",
-        showarrow=False,
-    )
-    fig.add_annotation(
-        x=dates[5],
-        y=8.8,
-        text=f"Source: https://www.worldometers.info/coronavirus/country/us/",
-        showarrow=False,
+    fig.update_layout(
+        updatemenus=[
+            dict(
+                type="buttons",
+                direction="right",
+                active=0,
+                x=0.5,
+                y=1.05,
+                buttons=list(
+                    [
+                        dict(
+                            label="Number",
+                            method="update",
+                            args=[
+                                {"y": [y0, y1, y2]},
+                                {"title": title,
+                                 "yaxis": {
+                                     "type": "log",
+                                     "title": "",
+                                 }},
+                            ],
+                        ),
+                        dict(
+                            label="Percent",
+                            method="update",
+                            args=[
+                                {"y": [y0norm, y1norm, y2norm]},
+                                {"title": title,
+                                 "yaxis": {
+                                     "type": "log",
+                                     "tickformat": "0.1r",
+                                     "title": "% of population",
+                                 }},
+                            ],
+                        ),
+                    ],
+                ),
+            )
+        ]
     )
     fig.show()
     fig.write_html("index.html", include_plotlyjs="cdn")

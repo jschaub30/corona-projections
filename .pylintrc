@@ -425,7 +425,8 @@ good-names=i,
            _,
            df,
            x,
-           y
+           y,
+           x0,y0,x1,y1,x2,y2
 
 # Include a hint for the correct naming format with invalid-name.
 include-naming-hint=no
