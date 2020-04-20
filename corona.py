@@ -29,17 +29,22 @@ def read_data():
     return dates, cases
 
 
-def fit_and_project(x, y, first_day):
+def fit_and_project(x, y, first_day, linear=False):
     """
     Fit data for the past number of days
     Project fit until LAST_DAY
     """
-    pfit = numpy.polyfit(x, numpy.log10(y), 1)
-
     # project into the future
     projected_dates = numpy.arange(first_day, LAST_DAY, timedelta(days=1))
     projected_x = numpy.arange(x[0], x[0] + len(projected_dates))
-    projected_y = 10 ** (pfit[0] * projected_x + pfit[1])
+
+    if linear:
+        pfit = numpy.polyfit(x, y, 1)
+        projected_y = pfit[0] * projected_x + pfit[1]
+    else:
+        pfit = numpy.polyfit(x, numpy.log10(y), 1)
+        projected_y = 10 ** (pfit[0] * projected_x + pfit[1])
+
     projected_y = numpy.minimum(projected_y, POPULATION)
 
     return projected_dates, projected_y, projected_y / POPULATION * 100
@@ -59,11 +64,11 @@ def main():
     # March 1 - March 26
     days = (datetime(2020, 3, 26) - datetime(2020, 3, 1)).days
     dates1, y1, y1norm = fit_and_project(x0[7:34], y0[7:34], dates0[7])
-    fig.add_trace(go.Scatter(x=dates1, y=y1, mode="lines", name="March 1 - 26",))
+    fig.add_trace(go.Scatter(x=dates1, y=y1, mode="lines", name="March 1 - 26 (exponential)",))
     # Last 7 days
     days = 7
-    dates2, y2, y2norm = fit_and_project(x0[-days:], y0[-days:], dates0[-days])
-    fig.add_trace(go.Scatter(x=dates2, y=y2, mode="lines", name=f"Last {days} days",))
+    dates2, y2, y2norm = fit_and_project(x0[-days:], y0[-days:], dates0[-days], linear=True)
+    fig.add_trace(go.Scatter(x=dates2, y=y2, mode="lines", name=f"Last {days} days (linear)",))
     subtitle = f"<br><sub><a href='https://www.worldometers.info/coronavirus/country/us/'>"
     subtitle += "Source</a>"
     subtitle += ", Also see: <br>"
