@@ -65,7 +65,7 @@ def main():
     days = (datetime(2020, 3, 26) - datetime(2020, 3, 1)).days
     dates1, y1, y1norm = fit_and_project(x0[7:34], y0[7:34], dates0[7])
     fig.add_trace(
-        go.Scatter(x=dates1, y=y1, mode="lines", name="March 1 - 26 (exponential)",)
+        go.Scatter(x=dates1, y=y1, mode="lines", name="March 1 - 26 (exponential)")
     )
     # Last 7 days
     days = 7
@@ -73,7 +73,7 @@ def main():
         x0[-days:], y0[-days:], dates0[-days], linear=True
     )
     fig.add_trace(
-        go.Scatter(x=dates2, y=y2, mode="lines", name=f"Last {days} days (linear)",)
+        go.Scatter(x=dates2, y=y2, mode="lines", name=f"Last {days} days (linear)")
     )
     subtitle = (
         f"<br><sub><a href='https://www.worldometers.info/coronavirus/country/us/'>"
@@ -104,10 +104,7 @@ def main():
                             method="update",
                             args=[
                                 {"y": [y0, y1, y2]},
-                                {
-                                    "title": title,
-                                    "yaxis": {"type": "log", "title": "",},
-                                },
+                                {"title": title, "yaxis": {"type": "log", "title": ""}},
                             ],
                         ),
                         dict(
@@ -125,7 +122,7 @@ def main():
                                 },
                             ],
                         ),
-                    ],
+                    ]
                 ),
             )
         ]
