@@ -64,16 +64,26 @@ def main():
     # March 1 - March 26
     days = (datetime(2020, 3, 26) - datetime(2020, 3, 1)).days
     dates1, y1, y1norm = fit_and_project(x0[7:34], y0[7:34], dates0[7])
-    fig.add_trace(go.Scatter(x=dates1, y=y1, mode="lines", name="March 1 - 26 (exponential)",))
+    fig.add_trace(
+        go.Scatter(x=dates1, y=y1, mode="lines", name="March 1 - 26 (exponential)",)
+    )
     # Last 7 days
     days = 7
-    dates2, y2, y2norm = fit_and_project(x0[-days:], y0[-days:], dates0[-days], linear=True)
-    fig.add_trace(go.Scatter(x=dates2, y=y2, mode="lines", name=f"Last {days} days (linear)",))
-    subtitle = f"<br><sub><a href='https://www.worldometers.info/coronavirus/country/us/'>"
+    dates2, y2, y2norm = fit_and_project(
+        x0[-days:], y0[-days:], dates0[-days], linear=True
+    )
+    fig.add_trace(
+        go.Scatter(x=dates2, y=y2, mode="lines", name=f"Last {days} days (linear)",)
+    )
+    subtitle = (
+        f"<br><sub><a href='https://www.worldometers.info/coronavirus/country/us/'>"
+    )
     subtitle += "Source</a>"
     subtitle += ", Also see: <br>"
     subtitle += "<a href='https://aatishb.com/covidtrends/'>covidtrends</a> and "
-    subtitle += "<a href='https://www.youtube.com/watch?v=54XLXg4fYsc'>explanation</a> <br>"
+    subtitle += (
+        "<a href='https://www.youtube.com/watch?v=54XLXg4fYsc'>explanation</a> <br>"
+    )
     subtitle += "<a href='http://covid19.healthdata.org/projections'>Projections</a>"
     subtitle += f"<br>Updated through {dates0[-1].strftime('%b-%d')}</sub>"
     title = "<b>Projected coronavirus cases in the USA</b>" + subtitle
@@ -94,11 +104,10 @@ def main():
                             method="update",
                             args=[
                                 {"y": [y0, y1, y2]},
-                                {"title": title,
-                                 "yaxis": {
-                                     "type": "log",
-                                     "title": "",
-                                 }},
+                                {
+                                    "title": title,
+                                    "yaxis": {"type": "log", "title": "",},
+                                },
                             ],
                         ),
                         dict(
@@ -106,12 +115,14 @@ def main():
                             method="update",
                             args=[
                                 {"y": [y0norm, y1norm, y2norm]},
-                                {"title": title,
-                                 "yaxis": {
-                                     "type": "log",
-                                     "tickformat": "0.1r",
-                                     "title": "% of population",
-                                 }},
+                                {
+                                    "title": title,
+                                    "yaxis": {
+                                        "type": "log",
+                                        "tickformat": "0.1r",
+                                        "title": "% of population",
+                                    },
+                                },
                             ],
                         ),
                     ],
